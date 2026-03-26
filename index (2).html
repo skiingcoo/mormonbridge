@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Mormon Bridge · Hobson Family</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  button { touch-action: manipulation; }
+
+  body {
+    min-height: 100vh;
+    background: #0f1b0f;
+    background-image:
+      radial-gradient(ellipse at 15% 15%, rgba(34,85,34,0.35) 0%, transparent 55%),
+      radial-gradient(ellipse at 85% 85%, rgba(10,35,10,0.5) 0%, transparent 55%);
+    font-family: 'DM Sans', sans-serif;
+    color: #e8f0e8;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ── SETUP ── */
+  .setup-wrap {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px;
+  }
+  .setup-card {
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 20px; padding: 24px 20px; width: 100%; max-width: 580px;
+  }
+  .logo-block { text-align: center; margin-bottom: 22px; }
+  .logo-suits { font-size: 20px; letter-spacing: 6px; color: rgba(200,230,200,0.5); margin-bottom: 4px; }
+  .logo-block h1 { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 900; color: #c8e6c9; line-height: 1; }
+  .logo-sub { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: rgba(200,230,200,0.45); margin-top: 5px; }
+  .logo-credit { font-size: 10px; color: rgba(200,230,200,0.2); margin-top: 4px; }
+
+  .setup-row { display: flex; gap: 16px; }
+  .setup-col { flex: 1; }
+
+  .field-lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 2px; color: rgba(200,230,200,0.45); font-weight: 600; margin-bottom: 7px; }
+  .dim-txt { font-weight: 400; opacity: 0.6; }
+
+  .pill-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 2px; }
+  .pill {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    color: #e8f0e8; border-radius: 100px; padding: 6px 14px; font-size: 14px;
+    cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 500; transition: all 0.15s;
+  }
+  .pill:hover { background: rgba(255,255,255,0.1); }
+  .pill.on { background: #2d6a2d; border-color: #4caf50; color: #fff; }
+
+  .slider-row { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+  .slider-row input[type=range] { flex: 1; accent-color: #4caf50; }
+  .slider-val { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: #81c784; min-width: 28px; text-align: right; }
+  .seq-info { font-size: 10px; color: rgba(200,230,200,0.28); margin-top: 5px; }
+
+  .names-list { display: flex; flex-direction: column; gap: 6px; }
+  .name-inp {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 9px; padding: 9px 11px; color: #e8f0e8;
+    font-family: 'DM Sans', sans-serif; font-size: 14px; width: 100%;
+  }
+  .name-inp:focus { outline: none; border-color: #4caf50; }
+  .name-inp::placeholder { color: rgba(200,230,200,0.25); }
+
+  .deal-btn {
+    width: 100%; margin-top: 18px; background: #2d6a2d; border: none; border-radius: 11px;
+    padding: 14px; color: #fff; font-family: 'DM Sans', sans-serif; font-size: 15px;
+    font-weight: 600; cursor: pointer; transition: all 0.15s;
+  }
+  .deal-btn:hover:not(:disabled) { background: #388e3c; }
+  .deal-btn:disabled { opacity: 0.32; cursor: not-allowed; }
+
+  /* ── GAME SCREENS ── */
+  .game-screen {
+    min-height: 100vh; display: flex; flex-direction: column;
+    padding: 10px 12px 16px; max-width: 700px; margin: 0 auto;
+  }
+
+  .top-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 0 10px; border-bottom: 1px solid rgba(255,255,255,0.07);
+    margin-bottom: 10px; flex-shrink: 0;
+  }
+  .top-left { display: flex; align-items: baseline; gap: 8px; }
+  .rnd-label { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #c8e6c9; }
+  .rnd-sub { font-size: 12px; color: rgba(200,230,200,0.45); }
+  .action-btn {
+    background: #2d6a2d; border: none; border-radius: 9px; padding: 9px 18px;
+    color: #fff; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+    cursor: pointer; white-space: nowrap; transition: all 0.15s;
+  }
+  .action-btn:hover:not(:disabled) { background: #388e3c; }
+  .action-btn:disabled { opacity: 0.32; cursor: not-allowed; }
+
+  /* ── PLAYER TABLE ── */
+  .pt-head {
+    display: flex; align-items: center; padding: 4px 10px 6px;
+    font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px;
+    color: rgba(200,230,200,0.35); font-weight: 600;
+    border-bottom: 1px solid rgba(255,255,255,0.06); margin-bottom: 4px;
+  }
+  .pt-row {
+    display: flex; align-items: center; padding: 7px 10px;
+    border-radius: 10px; transition: background 0.15s;
+  }
+  .pt-row:nth-child(even) { background: rgba(255,255,255,0.02); }
+  .row-made  { background: rgba(76,175,80,0.10) !important; }
+  .row-missed{ background: rgba(239,83,80,0.08) !important; }
+
+  .col-name  { flex: 1; min-width: 0; }
+  .col-score { width: 52px; text-align: right; }
+  .col-bid   { width: 150px; display: flex; justify-content: flex-end; }
+  .col-bidsm { width: 36px; text-align: center; }
+  .col-yn    { width: 130px; display: flex; gap: 6px; justify-content: center; }
+  .col-pts   { width: 44px; text-align: right; font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; }
+
+  .pname  { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; color: #c8e6c9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pscore { font-size: 14px; color: #81c784; font-weight: 600; }
+  .pbid   { font-size: 16px; color: rgba(200,230,200,0.7); font-weight: 600; }
+
+  .stepper { display: flex; align-items: center; gap: 6px; }
+  .st-btn {
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 7px; color: #e8f0e8; width: 44px; height: 30px; font-size: 20px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Sans', sans-serif; transition: all 0.1s;
+  }
+  .st-btn:hover { background: rgba(255,255,255,0.15); }
+  .st-val { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: #81c784; min-width: 24px; text-align: center; }
+
+  .yn {
+    flex: 1; height: 30px; border-radius: 7px; border: 1px solid rgba(255,255,255,0.1);
+    font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.12s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .yn.yes { background: rgba(76,175,80,0.12); color: #81c784; }
+  .yn.yes.active { background: #2d6a2d; border-color: #4caf50; color: #fff; }
+  .yn.no  { background: rgba(239,83,80,0.10); color: #ef9a9a; }
+  .yn.no.active  { background: #7b1f1f; border-color: #ef5350; color: #fff; }
+
+  .col-pts.pos { color: #81c784; }
+  .col-pts.neg { color: #ef9a9a; }
+
+  /* ── LEADERBOARD ── */
+  .lb-table { border-radius: 13px; overflow: hidden; border: 1px solid rgba(255,255,255,0.07); margin-bottom: 12px; }
+  .lb-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .lb-row:last-child { border-bottom: none; }
+  .lb-lead { background: rgba(76,175,80,0.08); }
+  .lb-rank { width: 28px; text-align: center; font-size: 13px; color: rgba(200,230,200,0.35); }
+  .lb-lead .lb-rank { font-size: 20px; }
+  .lb-name  { flex: 1; font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; color: #c8e6c9; }
+  .lb-score { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 900; color: #81c784; }
+
+  /* ── HISTORY ── */
+  .hist-drawer {
+    background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 11px; overflow: hidden; margin-bottom: 12px;
+  }
+  .hist-drawer summary {
+    padding: 10px 14px; cursor: pointer; font-size: 10px; text-transform: uppercase;
+    letter-spacing: 1.5px; color: rgba(200,230,200,0.4); user-select: none;
+  }
+  .hist-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .hist-table { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
+  .hist-table th, .hist-table td { padding: 6px 9px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); }
+  .hist-table th { font-size: 10px; color: rgba(200,230,200,0.35); font-weight: 500; }
+  .dim-cell { color: rgba(200,230,200,0.28); font-size: 11px; }
+  .ecell { cursor: pointer; color: rgba(200,230,200,0.55); }
+  .ecell:hover { background: rgba(255,255,255,0.06); border-radius: 4px; }
+  .ecell.pos { color: #81c784; }
+  .ecell.neg { color: #ef9a9a; }
+  .cinput {
+    background: rgba(255,255,255,0.1); border: 1px solid #4caf50; border-radius: 4px;
+    color: #fff; font-size: 12px; width: 48px; text-align: center;
+    font-family: 'DM Sans', sans-serif; padding: 1px 3px;
+  }
+  .cinput:focus { outline: none; }
+</style>
+</head>
+<body>
+
+<!-- ── SETUP SCREEN ───────────────────────────────────────────────────────── -->
+<div id="screen-setup" class="screen active">
+  <div class="setup-wrap">
+    <div class="setup-card">
+      <div class="logo-block">
+        <div class="logo-suits">♠ ♥ ♦ ♣</div>
+        <h1>Mormon Bridge</h1>
+        <div class="logo-sub">Hobson Family Scorekeeper</div>
+        <div class="logo-credit">Created by Sam Hobson</div>
+      </div>
+
+      <div class="setup-row">
+        <div class="setup-col">
+          <div class="field-lbl">Players</div>
+          <div class="pill-row" id="player-pills"></div>
+
+          <div class="slider-row">
+            <input type="range" id="max-cards-slider" min="1" max="12" value="7" />
+            <span class="slider-val" id="slider-display">7</span>
+          </div>
+          <div class="field-lbl" style="margin-top:6px">Max Cards / Round <span class="dim-txt" id="max-allowed-label">(max 12)</span></div>
+          <div class="seq-info" id="seq-info"></div>
+        </div>
+
+        <div class="setup-col">
+          <div class="field-lbl">Player Names</div>
+          <div class="names-list" id="names-list"></div>
+        </div>
+      </div>
+
+      <button class="deal-btn" id="deal-btn" disabled>Deal Cards →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── BIDDING SCREEN ─────────────────────────────────────────────────────── -->
+<div id="screen-bidding" class="screen">
+  <div class="game-screen">
+    <div class="top-bar">
+      <div class="top-left">
+        <span class="rnd-label" id="bid-rnd-label"></span>
+        <span class="rnd-sub" id="bid-rnd-sub"></span>
+      </div>
+      <button class="action-btn" id="start-round-btn">Start Round →</button>
+    </div>
+    <div class="pt-head">
+      <div class="col-name">Player</div>
+      <div class="col-score">Score</div>
+      <div class="col-bid">Bid</div>
+    </div>
+    <div id="bid-rows"></div>
+  </div>
+</div>
+
+<!-- ── SCORING SCREEN ─────────────────────────────────────────────────────── -->
+<div id="screen-scoring" class="screen">
+  <div class="game-screen">
+    <div class="top-bar">
+      <div class="top-left">
+        <span class="rnd-label" id="score-rnd-label"></span>
+        <span class="rnd-sub" id="score-rnd-sub"></span>
+      </div>
+      <button class="action-btn" id="record-btn" disabled>Record →</button>
+    </div>
+    <div class="pt-head">
+      <div class="col-name">Player</div>
+      <div class="col-bidsm">Bid</div>
+      <div class="col-yn">Made it?</div>
+      <div class="col-pts">Pts</div>
+    </div>
+    <div id="score-rows"></div>
+  </div>
+</div>
+
+<!-- ── SCOREBOARD SCREEN ──────────────────────────────────────────────────── -->
+<div id="screen-scoreboard" class="screen">
+  <div class="game-screen">
+    <div class="top-bar">
+      <div class="top-left">
+        <span class="rnd-label" id="sb-label"></span>
+        <span class="rnd-sub" id="sb-sub"></span>
+      </div>
+      <button class="action-btn" id="next-btn"></button>
+    </div>
+    <div class="lb-table" id="lb-table"></div>
+    <details class="hist-drawer" id="hist-drawer" style="display:none">
+      <summary>Round History — tap to edit</summary>
+      <div class="hist-scroll">
+        <table class="hist-table" id="hist-table"></table>
+      </div>
+    </details>
+  </div>
+</div>
+
+<script>
+// ── STATE ────────────────────────────────────────────────────────────────────
+const state = {
+  players: [],
+  roundSequence: [],
+  roundIndex: 0,
+  scores: [],
+  history: [],   // array of delta arrays
+  bids: [],
+};
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function buildSeq(max) {
+  if (max === 1) return [1];
+  const down = Array.from({length: max}, (_, i) => max - i);
+  const up   = Array.from({length: max - 1}, (_, i) => i + 2);
+  return [...down, ...up];
+}
+
+function calcPoints(bid, made) {
+  return made ? 10 + (bid > 0 ? bid : 0) : -10;
+}
+
+function recompute() {
+  const s = Array(state.players.length).fill(0);
+  state.history.forEach(row => row.forEach((d, i) => { s[i] += d; }));
+  state.scores = s;
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ── SETUP ────────────────────────────────────────────────────────────────────
+let numPlayers = 4;
+let maxCards = 7;
+
+function renderPills() {
+  const container = document.getElementById('player-pills');
+  container.innerHTML = '';
+  [2,3,4,5,6,7].forEach(n => {
+    const b = document.createElement('button');
+    b.className = 'pill' + (n === numPlayers ? ' on' : '');
+    b.textContent = n;
+    b.onclick = () => { numPlayers = n; updateSetup(); };
+    container.appendChild(b);
+  });
+}
+
+function updateSetup() {
+  const maxAllowed = Math.floor(51 / numPlayers);
+  if (maxCards > maxAllowed) maxCards = maxAllowed;
+
+  // pills
+  document.querySelectorAll('#player-pills .pill').forEach((b, i) => {
+    b.classList.toggle('on', [2,3,4,5,6,7][i] === numPlayers);
+  });
+
+  // slider
+  const slider = document.getElementById('max-cards-slider');
+  slider.max = maxAllowed;
+  slider.value = maxCards;
+  document.getElementById('slider-display').textContent = maxCards;
+  document.getElementById('max-allowed-label').textContent = `(max ${maxAllowed})`;
+
+  const seq = buildSeq(maxCards);
+  document.getElementById('seq-info').textContent = `${seq.length} rounds · ${maxCards}→1→${maxCards}`;
+
+  // name inputs
+  const list = document.getElementById('names-list');
+  const existing = list.querySelectorAll('input');
+  // add/remove inputs to match numPlayers
+  while (list.children.length < numPlayers) {
+    const inp = document.createElement('input');
+    inp.className = 'name-inp';
+    inp.placeholder = `Player ${list.children.length + 1}`;
+    inp.addEventListener('input', checkDealBtn);
+    list.appendChild(inp);
+  }
+  while (list.children.length > numPlayers) list.removeChild(list.lastChild);
+
+  checkDealBtn();
+}
+
+function checkDealBtn() {
+  const inputs = document.querySelectorAll('#names-list input');
+  const valid = [...inputs].every(i => i.value.trim().length > 0);
+  document.getElementById('deal-btn').disabled = !valid;
+}
+
+document.getElementById('max-cards-slider').addEventListener('input', e => {
+  maxCards = Number(e.target.value);
+  updateSetup();
+});
+
+document.getElementById('deal-btn').addEventListener('click', () => {
+  const inputs = document.querySelectorAll('#names-list input');
+  state.players = [...inputs].map(i => i.value.trim());
+  state.roundSequence = buildSeq(maxCards);
+  state.roundIndex = 0;
+  state.scores = Array(state.players.length).fill(0);
+  state.history = [];
+  state.bids = [];
+  renderBidding();
+});
+
+// ── BIDDING ──────────────────────────────────────────────────────────────────
+let currentBids = [];
+
+function renderBidding() {
+  const ri = state.roundIndex;
+  const cardCount = state.roundSequence[ri];
+  const total = state.roundSequence.length;
+
+  currentBids = Array(state.players.length).fill(0);
+
+  document.getElementById('bid-rnd-label').textContent = `Round ${ri + 1}`;
+  document.getElementById('bid-rnd-sub').textContent = `of ${total} · ${cardCount} card${cardCount !== 1 ? 's' : ''} each`;
+
+  const container = document.getElementById('bid-rows');
+  container.innerHTML = '';
+
+  state.players.forEach((name, i) => {
+    const row = document.createElement('div');
+    row.className = 'pt-row';
+    row.innerHTML = `
+      <div class="col-name pname">${name}</div>
+      <div class="col-score pscore" id="bid-score-${i}">${state.scores[i]}</div>
+      <div class="col-bid">
+        <div class="stepper">
+          <button class="st-btn" data-i="${i}" data-d="-1">−</button>
+          <span class="st-val" id="bid-val-${i}">0</span>
+          <button class="st-btn" data-i="${i}" data-d="1">+</button>
+        </div>
+      </div>
+    `;
+    container.appendChild(row);
+  });
+
+  container.onclick = e => {
+    const btn = e.target.closest('.st-btn');
+    if (!btn) return;
+    const i = Number(btn.dataset.i);
+    const d = Number(btn.dataset.d);
+    const cardCount = state.roundSequence[state.roundIndex];
+    currentBids[i] = Math.max(0, Math.min(cardCount, currentBids[i] + d));
+    document.getElementById(`bid-val-${i}`).textContent = currentBids[i];
+  };
+
+  document.getElementById('start-round-btn').onclick = () => {
+    state.bids = [...currentBids];
+    renderScoring();
+  };
+
+  showScreen('screen-bidding');
+}
+
+// ── SCORING ──────────────────────────────────────────────────────────────────
+let currentGot = [];
+
+function renderScoring() {
+  const ri = state.roundIndex;
+  const cardCount = state.roundSequence[ri];
+  const total = state.roundSequence.length;
+
+  currentGot = Array(state.players.length).fill(null);
+
+  document.getElementById('score-rnd-label').textContent = `Round ${ri + 1}`;
+  document.getElementById('score-rnd-sub').textContent = `of ${total} · ${cardCount} cards · Results`;
+
+  const container = document.getElementById('score-rows');
+  container.innerHTML = '';
+
+  state.players.forEach((name, i) => {
+    const row = document.createElement('div');
+    row.className = 'pt-row';
+    row.id = `score-row-${i}`;
+    row.innerHTML = `
+      <div class="col-name pname">${name}</div>
+      <div class="col-bidsm pbid">${state.bids[i]}</div>
+      <div class="col-yn">
+        <button class="yn yes" data-i="${i}" data-v="1">✓</button>
+        <button class="yn no"  data-i="${i}" data-v="0">✗</button>
+      </div>
+      <div class="col-pts" id="pts-${i}">—</div>
+    `;
+    container.appendChild(row);
+  });
+
+  container.onclick = e => {
+    const btn = e.target.closest('.yn');
+    if (!btn) return;
+    const i = Number(btn.dataset.i);
+    const val = Number(btn.dataset.v) === 1;
+    currentGot[i] = currentGot[i] === val ? null : val;
+    updateScoringRow(i);
+    checkRecordBtn();
+  };
+
+  document.getElementById('record-btn').onclick = () => {
+    const deltas = state.players.map((_, i) => calcPoints(state.bids[i], currentGot[i]));
+    state.history.push(deltas);
+    recompute();
+    state.roundIndex++;
+    renderScoreboard();
+  };
+
+  checkRecordBtn();
+  showScreen('screen-scoring');
+}
+
+function updateScoringRow(i) {
+  const row = document.getElementById(`score-row-${i}`);
+  const ptsEl = document.getElementById(`pts-${i}`);
+  const made = currentGot[i];
+
+  // button states
+  row.querySelectorAll('.yn').forEach(b => {
+    const isYes = Number(b.dataset.v) === 1;
+    b.classList.toggle('active', made === true && isYes || made === false && !isYes);
+  });
+
+  // row color
+  row.classList.remove('row-made', 'row-missed');
+  if (made === true)  row.classList.add('row-made');
+  if (made === false) row.classList.add('row-missed');
+
+  // points preview
+  if (made !== null) {
+    const pts = calcPoints(state.bids[i], made);
+    ptsEl.textContent = (pts > 0 ? '+' : '') + pts;
+    ptsEl.className = 'col-pts ' + (pts > 0 ? 'pos' : 'neg');
+  } else {
+    ptsEl.textContent = '—';
+    ptsEl.className = 'col-pts';
+  }
+}
+
+function checkRecordBtn() {
+  const allDone = currentGot.every(g => g !== null);
+  document.getElementById('record-btn').disabled = !allDone;
+}
+
+// ── SCOREBOARD ───────────────────────────────────────────────────────────────
+function renderScoreboard() {
+  const ri = state.roundIndex;
+  const total = state.roundSequence.length;
+  const isOver = ri >= total;
+
+  document.getElementById('sb-label').textContent = isOver ? '🏆 Final Scores!' : `After Round ${ri}`;
+  document.getElementById('sb-sub').textContent = `${ri} of ${total} rounds`;
+
+  const nextBtn = document.getElementById('next-btn');
+  nextBtn.textContent = isOver ? 'New Game' : 'Next Round →';
+  nextBtn.onclick = isOver ? resetGame : renderBidding;
+
+  // leaderboard
+  const sorted = state.players
+    .map((n, i) => ({ n, s: state.scores[i], i }))
+    .sort((a, b) => b.s - a.s);
+
+  const lb = document.getElementById('lb-table');
+  lb.innerHTML = '';
+  sorted.forEach((p, rank) => {
+    const row = document.createElement('div');
+    row.className = 'lb-row' + (rank === 0 ? ' lb-lead' : '');
+    row.innerHTML = `
+      <div class="lb-rank">${rank === 0 ? '👑' : rank + 1}</div>
+      <div class="lb-name">${p.n}</div>
+      <div class="lb-score">${p.s}</div>
+    `;
+    lb.appendChild(row);
+  });
+
+  // history table
+  const drawer = document.getElementById('hist-drawer');
+  if (state.history.length === 0) {
+    drawer.style.display = 'none';
+  } else {
+    drawer.style.display = '';
+    const tbl = document.getElementById('hist-table');
+    let html = '<thead><tr><th>#</th><th>↕</th>';
+    state.players.forEach(n => { html += `<th>${n}</th>`; });
+    html += '</tr></thead><tbody>';
+    state.history.forEach((row, r) => {
+      html += `<tr><td class="dim-cell">${r+1}</td><td class="dim-cell">${state.roundSequence[r]}</td>`;
+      row.forEach((d, col) => {
+        const cls = d > 0 ? 'pos' : d < 0 ? 'neg' : '';
+        html += `<td class="ecell ${cls}" data-row="${r}" data-col="${col}">${d > 0 ? '+' : ''}${d}</td>`;
+      });
+      html += '</tr>';
+    });
+    html += '</tbody>';
+    tbl.innerHTML = html;
+
+    tbl.onclick = e => {
+      const cell = e.target.closest('.ecell');
+      if (!cell) return;
+      const row = Number(cell.dataset.row);
+      const col = Number(cell.dataset.col);
+      const cur = state.history[row][col];
+      const inp = document.createElement('input');
+      inp.className = 'cinput';
+      inp.value = cur;
+      cell.innerHTML = '';
+      cell.appendChild(inp);
+      inp.focus();
+      inp.select();
+      let committed = false;
+      const commit = () => {
+        if (committed) return;
+        committed = true;
+        const num = parseInt(inp.value, 10);
+        if (!isNaN(num)) {
+          state.history[row][col] = num;
+          recompute();
+        }
+        renderScoreboard();
+      };
+      inp.addEventListener('blur', commit);
+      inp.addEventListener('keydown', e => {
+        if (e.key === 'Enter') commit();
+        if (e.key === 'Escape') { committed = true; renderScoreboard(); }
+      });
+    };
+  }
+
+  showScreen('screen-scoreboard');
+}
+
+// ── RESET ────────────────────────────────────────────────────────────────────
+function resetGame() {
+  state.players = [];
+  state.roundSequence = [];
+  state.roundIndex = 0;
+  state.scores = [];
+  state.history = [];
+  state.bids = [];
+  currentBids = [];
+  currentGot = [];
+  renderPills();
+  updateSetup();
+  showScreen('screen-setup');
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+renderPills();
+updateSetup();
+</script>
+</body>
+</html>
